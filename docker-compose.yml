@@ -1,28 +1,21 @@
-version: "3.7"
+version: "3"
 services:
   sonarqube:
+    image: sonarqube:community
+    hostname: sonarqube
     container_name: sonarqube
-    image: sonarqube:8.9.7-community
     depends_on:
       - db
     environment:
       SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
       SONAR_JDBC_USERNAME: sonar
       SONAR_JDBC_PASSWORD: sonar
-    networks:
-      - sonar
     volumes:
-      - type: bind
-        source: ./sonarqube/data
-        target: /opt/sonarqube/data
-      - type: bind
-        source: ./sonarqube/extensions
-        target: /opt/sonarqube/extensions
-      - type: bind
-        source: ./sonarqube/logs
-        target: /opt/sonarqube/logs
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
     ports:
-      - 9000:9000
+      - "9000:9000"
   init:
       image: bash
       privileged: true
@@ -31,30 +24,20 @@ services:
         - ./init.sh:/mnt/init.sh 
       command: ["sh", "-e", "/mnt/init.sh"]
   db:
-    container_name: sonar_db
     image: postgres:12
+    hostname: postgresql
+    container_name: postgresql
     environment:
       POSTGRES_USER: sonar
       POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - pgconf:/etc/postgresql
-      - pglog:/var/log/postgresql
-  nginx:
-    container_name: nginx_sonarqube
-    image: nginx:latest
-    networks:
-    - sonar
-    ports:
-      - 443:443
-    volumes:
-    - ./ssl/:/etc/ssl
-    - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:z
-networks:
-  sonar:
-    driver: bridge
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
 
 volumes:
-  pgdata: {}
-  pgconf: {} 
-  pglog: {}
+  sonarqube_data: {}
+  sonarqube_extensions: {}
+  sonarqube_logs: {}
+  postgresql: {}
+  postgresql_data: {}
