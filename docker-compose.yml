@@ -10,7 +10,7 @@ services:
       SONAR_JDBC_USERNAME: sonar
       SONAR_JDBC_PASSWORD: sonar
     networks:
-    - sonar
+      - sonar
     volumes:
       - type: bind
         source: ./sonarqube/data
@@ -21,6 +21,8 @@ services:
       - type: bind
         source: ./sonarqube/logs
         target: /opt/sonarqube/logs
+    ports:
+      - 9000:9000
   init:
       image: bash
       privileged: true
@@ -29,22 +31,18 @@ services:
         - ./init.sh:/mnt/init.sh 
       command: ["sh", "-e", "/mnt/init.sh"]
   db:
+    container_name: sonar_db
     image: postgres:12
-    networks:
-      - sonar
     environment:
       POSTGRES_USER: sonar
       POSTGRES_PASSWORD: sonar
     volumes:
-      - type: bind
-        source: ./postgresql/conf
-        target: /var/lib/postgresql
-      - type: bind
-        source: ./postgresql/data
-        target: /var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
+      - pgconf:/etc/postgresql
+      - pglog:/var/log/postgresql
   nginx:
+    container_name: nginx_sonarqube
     image: nginx:latest
-    container_name: nginx
     networks:
     - sonar
     ports:
@@ -55,3 +53,8 @@ services:
 networks:
   sonar:
     driver: bridge
+
+volumes:
+  pgdata: {}
+  pgconf: {} 
+  pglog: {}
