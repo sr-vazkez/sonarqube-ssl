@@ -17,7 +17,7 @@ services:
     networks:
       - sonarnet
     ports:
-      - "9000:9000" # web-ui (http)
+      - "9000" # web-ui (http)
       # - "443:9000"  # web-ui (https)
   init:
       image: bash
@@ -51,13 +51,13 @@ services:
       networks:
         - sonarnet
       ports:
-        - 80:80
         - 443:443
       restart: always
       volumes:
-        - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-        - ./ssl/localhost.crt:/etc/ssl/localhost.crt                                                                                                                                                             .crt
-        - ./ssl/localhost.key:/etc/ssl/localhost.key
+        - ${PWD}/nginx/default.conf:/etc/nginx/conf.d/default.conf
+        - ${PWD}/ssl:/etc/ssl/
+        - reverse_proxy_logs:/var/log/nginx
+
 
 networks:
   sonarnet:
@@ -69,3 +69,4 @@ volumes:
   sonarqube_logs: {}
   postgresql: {}
   postgresql_data: {}
+  reverse_proxy_logs: {}
